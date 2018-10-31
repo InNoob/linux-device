@@ -1,79 +1,77 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "def.h"
 
-int main(void)
+int main(int argc,char** argv)
 {
-	XEvent xevent;
-	InitXEvent(&xevent);
+	int positionX = 0;
+	int positionY = 0;
+	unsigned int button = 0;
+	unsigned char* func;
 
+	switch(argc)
+	{
+		case 2 : {
+			func = argv[1];
+			break;
+		}
+		case 3 : {
+			func = argv[1];
+			button = atoi(argv[2]);
+			XEvent xevent;
+			InitXEvent(&xevent);
+			PMOUSE_INFO minfo = InitPMouseInfo(&xevent);
+			minfo->xevent->xbutton.button = button;
+			if(!strcmp(func,"mouseKeyDown"))
+			{
+				mouse_keydown(minfo);
+			}else if(!strcmp(func,"mouseKeyUp")){
+				mouse_keyup(minfo);
+			}else if(!strcmp(func,"mouseClick")){
+				mouse_click(minfo);
+			}
+			free(minfo);
+			minfo=NULL;
+			break;
+		}
+		case 4 : {
+			func = argv[1];
+			positionX = atoi(argv[2]);
+			positionY = atoi(argv[3]);
 
-	printf("Mouse move : [%d, %d]\n", xevent.xmotion.x_root, xevent.xmotion.y_root);
-	
-	PMOUSE_INFO minfo = InitPMouseInfo(&xevent);
-	if (!minfo) {
-		printf("init error\n");
-		return 0;
+			XEvent xevent;
+			InitXEvent(&xevent);
+			PMOUSE_INFO minfo = InitPMouseInfo(&xevent);
+			minfo->positionX = positionX;
+			minfo->positionY = positionY;
+			if(!strcmp(func,"setMouseMove")){
+				set_mouse_move(minfo);
+			}else if(!strcmp(func,"setMousePosition")){
+				set_mouse_position(minfo);
+			}else if(!strcmp(func,"setMouseMoveSlow")){
+				set_mouse_move_slow(minfo);
+			}else if(!strcmp(func,"setMousePositionSlow")){
+				set_mouse_position_slow(minfo);
+			}
+
+			free(minfo);
+			minfo=NULL;
+			break;
+		}
+		default : {
+			exit(0);
+		}
 	}
-	minfo->positionX = 200;
-	minfo->positionY = 200;
-	
 
-	set_mouse_position(minfo);
-	
-	// xevent.xbutton.button = MOUSE_BTN_LEFT;
-	// xevent.xbutton.state = MOUSE_BTN_LEFT;
-	// xevent.xbutton.time = 0L;
-	
-	sleep(1);
-	
-	minfo->xevent->xbutton.button = MOUSE_BTN_LEFT;
-	mouse_keydown(minfo);
+	while(--argc>0)
+	{
+		printf("argv->%s \n",argv[argc] );
+	}
 
-	minfo->positionX = 0;
-	minfo->positionY = 200;
-	set_mouse_move(minfo);
-	mouse_keyup(minfo);
-
-	minfo->positionX = -180;
-	minfo->positionY = -320;
-	sleep(1);
-	set_mouse_move(minfo);
-	mouse_click(minfo);
-	sleep(1);
-	mouse_click(minfo);
-	minfo->positionX = 180;
-	minfo->positionY = 320;
-	set_mouse_move(minfo);
-
-
-	printf("Mouse move : [%d, %d]\n", xevent.xmotion.x_root, xevent.xmotion.y_root);
-
-	// minfo->positionX = 900;
-	// minfo->positionY = 500;
-
-	// if(!set_mouse_position(minfo)){
-	// 	printf("set mouse position error");
-	// }
-
-
-	// get_mouse_position(&xevent);
-	// printf("Mouse move : [%d, %d]\n", xevent.xmotion.x_root, xevent.xmotion.y_root);
-
-	// minfo->positionX = -857;
-	// minfo->positionY = -472;
-	// sleep(1);
-	// set_mouse_move_slow(minfo);
-
-
-	// get_mouse_position(&xevent);
-	// printf("Mouse move : [%d, %d]\n", xevent.xmotion.x_root, xevent.xmotion.y_root);
-	
-
-	free(minfo);
-	minfo=NULL;
+	printf("func: %s, button: %d, pX: %d, pY: %d\n",func,button,positionX,positionY);
 
 	return 1;
 	

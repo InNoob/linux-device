@@ -6,7 +6,6 @@
 #include "def.h"
 
 
-
 int set_mouse_position(PMOUSE_INFO minfo)
 {
 

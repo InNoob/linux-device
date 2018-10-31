@@ -1,0 +1,145 @@
+#include <string.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <linux/input.h>
+#include <stdio.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include "def.h"
+
+// int get_mouse_position(PMOUSE_INFO mInfo)
+// {
+// 	// int m_fd = open("/dev/input/mice", O_RDONLY);
+// 	if (*(mInfo->fd) <= 0)
+// 	{
+// 		printf("m_fd open failed");
+// 		return 0;
+// 	}
+// 	while (1)
+// 	{
+// 		unsigned char buff[3];
+// 		if (read(*(mInfo->fd), buff, sizeof(buff)))
+// 		{
+// 			*(mInfo->positionX) += (buff[1] >= 0 && buff[1] < 128) ? (buff[1] * mInfo->mouse_speed ) : ((buff[1] - 256) * mInfo->mouse_speed);
+// 			*(mInfo->positionY) -= (buff[2] >= 0 && buff[2] < 128) ? (buff[2] * mInfo->mouse_speed ) : ((buff[2] - 256) * mInfo->mouse_speed);
+// 			*(mInfo->positionX) = (*(mInfo->positionX) > 1366) ? 1366 : *(mInfo->positionX);
+// 			*(mInfo->positionY) = (*(mInfo->positionY) > 768) ? 768 : *(mInfo->positionY);
+// 			*(mInfo->positionX) = (*(mInfo->positionX) <= 0) ? 0 : *(mInfo->positionX);
+// 			*(mInfo->positionY) = (*(mInfo->positionY) <= 0) ? 0 : *(mInfo->positionY);
+// 			printf("(%d,%d)\n", *(mInfo->positionX), *(mInfo->positionY));
+// 		}
+// 		// usleep(50*1000);
+// 	}
+// 	return 1;
+// }
+
+/* 设置鼠标相对移动距离 */
+
+int set_mouse_move(PMOUSE_STEP mstep)
+{
+	struct input_event event;
+	memset(&event, 0, sizeof(event));
+	gettimeofday(&event.time, NULL);
+	event.type = EV_REL;
+	event.code = REL_X;				  //鼠标x轴方向
+	event.value = mstep->stepX;			  //x轴方向相对位移
+	write(*(mstep->fd), &event, sizeof(event)); //写入
+
+	event.type = EV_REL;
+	event.code = REL_Y;				  //鼠标y轴方向
+	event.value = mstep->stepY;//y轴方向相对位移
+	write(*(mstep->fd), &event, sizeof(event)); //写入
+
+	event.type = EV_SYN;			  //同步
+	event.code = SYN_REPORT;
+	event.value = 0;
+	write(*(mstep->fd), &event, sizeof(event));
+	return 1;
+}
+/*
+*模拟鼠标单击，先按下后释放
+*/
+void simulate_mouse_click(int fd, int value)
+{
+	struct input_event event;
+	memset(&event, 0, sizeof(event));
+	gettimeofday(&event.time, NULL);
+	event.type = EV_KEY;
+	event.code = value;
+	event.value = 1;
+	if (write(fd, &event, sizeof(event)) < 0)
+	{
+		printf("mouse key write error.\n");
+	}
+
+	event.type = EV_SYN;
+	event.code = SYN_REPORT;
+	event.value = 0;
+	write(fd, &event, sizeof(event));
+
+	memset(&event, 0, sizeof(event));
+	gettimeofday(&event.time, 0);
+
+	event.type = EV_KEY;
+	event.code = value;
+	event.value = 0;
+	if (write(fd, &event, sizeof(event)) < 0)
+	{
+		printf("mouse key write error.\n");
+	}
+
+	event.type = EV_SYN;
+	event.code = SYN_REPORT;
+	event.value = 0;
+	write(fd, &event, sizeof(event));
+	return;
+}
+int main(void)
+{
+	int fd_mouse;
+	int value = 0;
+	fd_mouse = open("/dev/input/event5", O_RDWR); //打开设备节点
+	if (fd_mouse <= 0)
+	{
+		printf("error open mouse\n");
+		return -2;
+	}
+
+	PMOUSE_STEP mstep;
+	mstep->fd = &fd_mouse;
+	mstep->stepX = 5;
+	mstep->stepY = 5;
+
+	while (1)
+	{
+		value = 0;
+		for (value = 0; value < 50; value++)
+		{
+			set_mouse_move(mstep);
+			usleep(5000);
+		}
+		// get_mouse_position(fd_mouse,&pX,&pY);
+		// printf("(%d,%d)",pX,pY);
+		int ret = getchar();
+		if(ret == 'q')
+			break;
+		// for (value = 0; value < 100; value++)
+		// {
+		// 	set_mouse_move(mInfo);
+		// 	usleep(1000);
+		// }
+		// // get_mouse_position(fd_mouse,&pX,&pY);
+		// // printf("(%d,%d)",pX,pY);
+		// ret = getchar();
+		// if(ret == 'q')
+		// 	break;
+
+	}
+	// simulate_mouse_click(fd_mouse, BTN_RIGHT); //点击鼠标左键
+	close(fd_mouse);
+	return 0;
+}
