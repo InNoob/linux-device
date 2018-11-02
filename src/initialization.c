@@ -44,6 +44,22 @@ PMOUSE_INFO InitPMouseInfo(XEvent *xevent)
 	return minfo;
 }
 
+PKEYBOARD_INFO InitPKeyboardInfo(XEvent *xevent)
+{
+	PKEYBOARD_INFO kinfo = (PKEYBOARD_INFO)malloc(sizeof(PKEYBOARD_INFO));
+
+	if(!kinfo)
+	{
+		printf("minfo malloc error");
+		return NULL;
+	}
+
+	kinfo->xevent = xevent;
+	kinfo->key = kinfo->xevent->xbutton.button;
+	
+	return kinfo;
+}
+
 MOUSE_INFO ConstantMouseInfo(void * pinfo)
 {
 	MOUSE_INFO minfo;

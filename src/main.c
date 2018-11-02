@@ -23,18 +23,36 @@ int main(int argc,char** argv)
 			button = atoi(argv[2]);
 			XEvent xevent;
 			InitXEvent(&xevent);
+
 			PMOUSE_INFO minfo = InitPMouseInfo(&xevent);
 			minfo->xevent->xbutton.button = button;
-			if(!strcmp(func,"mouseKeyDown"))
-			{
+
+			PKEYBOARD_INFO kinfo = InitPKeyboardInfo(&xevent);
+			kinfo->key = button;
+			// kinfo->keySym = *argv[2];
+			kinfo->keySym = "tab";
+
+			if(!strcmp(func,"mouseKeyDown")){
 				mouse_keydown(minfo);
 			}else if(!strcmp(func,"mouseKeyUp")){
 				mouse_keyup(minfo);
 			}else if(!strcmp(func,"mouseClick")){
 				mouse_click(minfo);
+			}else if(!strcmp(func,"keyDown")){
+				kbd_down(kinfo);
+			}else if(!strcmp(func,"keyPress")){
+				kbd_press(kinfo);
+			}else if(!strcmp(func,"keyUp")){
+				kbd_up(kinfo);
+			}else if(!strcmp(func,"c2key")){
+				printf("keycode: %d\n",char2key(kinfo));
 			}
+
 			free(minfo);
 			minfo=NULL;
+			free(kinfo);
+			kinfo=NULL;
+			XCloseDisplay(xevent.xmotion.display);
 			break;
 		}
 		case 4 : {
@@ -47,6 +65,7 @@ int main(int argc,char** argv)
 			PMOUSE_INFO minfo = InitPMouseInfo(&xevent);
 			minfo->positionX = positionX;
 			minfo->positionY = positionY;
+
 			if(!strcmp(func,"setMouseMove")){
 				set_mouse_move(minfo);
 			}else if(!strcmp(func,"setMousePosition")){
@@ -59,6 +78,7 @@ int main(int argc,char** argv)
 
 			free(minfo);
 			minfo=NULL;
+			XCloseDisplay(xevent.xmotion.display);
 			break;
 		}
 		default : {

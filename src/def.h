@@ -18,15 +18,19 @@ typedef struct _MOUSE_INFO
 	int positionY;
 } MOUSE_INFO, *PMOUSE_INFO;
 
-typedef struct _KEYPRESS_INFO
+typedef struct _KEYBOARD_INFO
 {
-	int *fd;
-	int key;
-} KEYPRESS_INFO, *PKEYPRESS_INFO;
+	int* fd;
+	XEvent *xevent;
+	unsigned int key;
+	char* keySym;
+} KEYBOARD_INFO, *PKEYBOARD_INFO;
 
 int InitXEvent(XEvent *);
 
 PMOUSE_INFO InitPMouseInfo(XEvent *);
+
+PKEYBOARD_INFO InitPKeyboardInfo(XEvent *);
 
 PMOUSE_INFO ConvertMouseInfo(void*);
 
@@ -41,9 +45,13 @@ int set_mouse_position_slow(PMOUSE_INFO);
 void* pthread_moveX(void*);
 void* pthread_moveY(void*); 
 
-
 int mouse_keydown(PMOUSE_INFO);
 int mouse_keyup(PMOUSE_INFO);
 int mouse_click(PMOUSE_INFO);
+
+int kbd_press(PKEYBOARD_INFO);
+int kbd_down(PKEYBOARD_INFO);
+int kbd_up(PKEYBOARD_INFO);
+int char2key(PKEYBOARD_INFO);
 
 #endif
