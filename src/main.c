@@ -52,7 +52,7 @@ int main(int argc,char** argv)
 			minfo=NULL;
 			free(kinfo);
 			kinfo=NULL;
-			XCloseDisplay(xevent.xmotion.display);
+			// XCloseDisplay(xevent.xmotion.display);
 			break;
 		}
 		case 4 : {
